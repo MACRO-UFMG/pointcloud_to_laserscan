@@ -58,14 +58,14 @@ namespace pointcloud_to_laserscan
 PointCloudToLaserScanNode::PointCloudToLaserScanNode(const rclcpp::NodeOptions & options)
 : rclcpp::Node("pointcloud_to_laserscan", options)
 {
-  target_frame_ = this->declare_parameter("target_frame", "");
+  target_frame_ = this->declare_parameter("target_frame", ""); 
   tolerance_ = this->declare_parameter("transform_tolerance", 0.01);
   // TODO(hidmic): adjust default input queue size based on actual concurrency levels
   // achievable by the associated executor
   input_queue_size_ = this->declare_parameter(
     "queue_size", static_cast<int>(std::thread::hardware_concurrency()));
   min_height_ = this->declare_parameter("min_height", std::numeric_limits<double>::min());
-  max_height_ = this->declare_parameter("max_height", std::numeric_limits<double>::max());
+  max_height_ = this->declare_parameter("max_height", 0.05); // originally "max_height", std::numeric_limits<double>::max()
   angle_min_ = this->declare_parameter("angle_min", -M_PI);
   angle_max_ = this->declare_parameter("angle_max", M_PI);
   angle_increment_ = this->declare_parameter("angle_increment", M_PI / 180.0);
@@ -120,7 +120,7 @@ void PointCloudToLaserScanNode::subscriptionListenerThreadLoop()
           "Got a subscriber to laserscan, starting pointcloud subscriber");
         rclcpp::SensorDataQoS qos;
         qos.keep_last(input_queue_size_);
-        sub_.subscribe(this, "cloud_in", qos.get_rmw_qos_profile());
+        sub_.subscribe(this, "livox/lidar", qos.get_rmw_qos_profile());
       }
     } else if (sub_.getSubscriber()) {
       RCLCPP_INFO(
